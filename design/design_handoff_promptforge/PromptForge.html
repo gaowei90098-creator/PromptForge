@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PromptForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+/* ── CSS Variables (theme tokens) ── */
+:root {
+  --accent: #7C3AED;
+  --accent-dim: #6D28D9;
+  --accent-soft: rgba(124,58,237,0.12);
+  --accent-border: rgba(124,58,237,0.4);
+
+  /* Dark defaults */
+  --bg-base:       #0f0f11;
+  --bg-surface:    #18181b;
+  --bg-raised:     #1f1f23;
+  --bg-hover:      rgba(255,255,255,0.05);
+  --bg-input:      #141416;
+
+  --border:        #2d2d32;
+  --border-subtle: #222226;
+
+  --text-primary:  #e4e4e7;
+  --text-secondary:#a1a1aa;
+  --text-muted:    #52525b;
+  --text-faint:    #3f3f46;
+
+  --code-bg:       #141416;
+
+  --dot-inactive:  #3f3f46;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.light {
+  --bg-base:       #f8f8fa;
+  --bg-surface:    #ffffff;
+  --bg-raised:     #f2f2f5;
+  --bg-hover:      rgba(0,0,0,0.04);
+  --bg-input:      #ffffff;
+
+  --border:        #e2e2e8;
+  --border-subtle: #ececf0;
+
+  --text-primary:  #18181b;
+  --text-secondary:#52525b;
+  --text-muted:    #71717a;
+  --text-faint:    #a1a1aa;
+
+  --code-bg:       #f4f4f6;
+
+  --dot-inactive:  #d4d4d8;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'PingFang SC', 'Segoe UI', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+  height: 100vh;
+  transition: background 200ms ease-out, color 200ms ease-out;
+  user-select: none;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── Layout ── */
+#window { display: flex; flex-direction: column; height: 100vh; position: relative; overflow: hidden; }
+
+/* ── Title bar ── */
+.titlebar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px 0;
+  flex-shrink: 0;
+}
+.logo { display: flex; align-items: center; gap: 8px; -webkit-app-region: drag; }
+.logo-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.logo-text { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.titlebar-actions { display: flex; gap: 2px; }
+
+/* ── Nav tabs ── */
+.state-tabs { display: flex; justify-content: center; gap: 4px; padding: 8px 0 0; flex-shrink: 0; }
+.tab-btn {
+  font-size: 11px; padding: 4px 14px; border-radius: 999px;
+  border: 1px solid transparent; color: var(--text-muted);
+  background: transparent; cursor: pointer;
+  transition: color 150ms, background 150ms, border-color 150ms;
+}
+.tab-btn:hover { color: var(--text-secondary); }
+.tab-btn.active {
+  border-color: var(--border);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+}
+
+/* ── State panels ── */
+.content-area { position: relative; flex: 1; overflow: hidden; margin-top: 4px; }
+.state-panel {
+  position: absolute; inset: 0;
+  transition: opacity 150ms ease-out, transform 150ms ease-out;
+}
+.state-panel.hidden-state { opacity: 0; pointer-events: none; transform: translateY(6px); }
+.state-panel.active-state { opacity: 1; transform: translateY(0); }
+
+/* ── Icon button ── */
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); border-radius: 6px;
+  transition: background 150ms, color 150ms;
+}
+.icon-btn:hover { background: var(--bg-hover); color: var(--text-secondary); }
+
+/* ── Primary button ── */
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--accent); color: #fff; border: none; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  border-radius: 8px; padding: 9px 18px;
+  transition: background 150ms ease-out;
+  white-space: nowrap;
+}
+.btn-primary:hover { background: var(--accent-dim); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary kbd { font-size: 10px; opacity: 0.55; margin-left: 2px; }
+
+/* ── Secondary button ── */
+.btn-secondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: transparent; border: 1px solid var(--border); cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 400; color: var(--text-secondary);
+  border-radius: 8px; padding: 9px 18px;
+  transition: background 150ms, border-color 150ms, color 150ms;
+}
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--accent-border); color: var(--text-primary); }
+
+/* ── Textarea ── */
+textarea {
+  font-family: inherit; font-size: 13px; line-height: 1.7;
+  background: var(--bg-input); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 40px 14px 16px; resize: none; width: 100%;
+  transition: border-color 150ms;
+  outline: none;
+}
+textarea::placeholder { color: var(--text-faint); }
+textarea:focus { border-color: var(--text-muted); }
+
+/* ── Input (settings etc) ── */
+input[type="text"], input[type="password"] {
+  font-family: inherit; font-size: 12px;
+  background: var(--bg-raised); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 12px; width: 100%; outline: none;
+  transition: border-color 150ms;
+}
+input[type="text"]:focus, input[type="password"]:focus { border-color: var(--text-muted); }
+input::placeholder { color: var(--text-faint); }
+
+select {
+  font-family: inherit; font-size: 12px;
+  background: var(--bg-raised); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 12px; width: 100%; outline: none;
+  transition: border-color 150ms; cursor: pointer;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px 20px;
+}
+.card-subtle {
+  background: var(--bg-raised); border: 1px solid var(--border-subtle);
+  border-radius: 8px; padding: 12px 14px;
+}
+
+/* ── Status bar ── */
+.status-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  border-top: 1px solid var(--border-subtle);
+  padding: 6px 20px;
+  display: flex; align-items: center; gap: 16px;
+  font-size: 10px; color: var(--text-faint);
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #10B981; }
+.status-dot.pulse { animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* ── Option chips ── */
+.chip {
+  font-size: 11px; padding: 5px 12px; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--text-secondary);
+  background: transparent; cursor: pointer;
+  transition: border-color 150ms, color 150ms, background 150ms;
+}
+.chip:hover { border-color: var(--accent-border); color: var(--accent); }
+.chip.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+/* ── Progress dots ── */
+.prog-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dot-inactive); transition: background 200ms; }
+.prog-dot.active { background: var(--accent); }
+
+/* ── Shimmer skeleton ── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.shimmer {
+  border-radius: 4px; height: 12px;
+  background: linear-gradient(90deg, var(--bg-raised) 25%, var(--bg-hover) 50%, var(--bg-raised) 75%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+/* ── Stream cursor ── */
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
+.cursor-blink::after { content:'▋'; animation: blink 1s step-end infinite; color: var(--accent); }
+
+/* ── Result Markdown ── */
+.result-md { font-size: 12.5px; color: var(--text-secondary); line-height: 1.75; }
+.result-md p { margin-bottom: 8px; }
+.result-md h3 { font-size: 12px; font-weight: 600; color: var(--text-primary); margin: 14px 0 6px; }
+.result-md ul { padding-left: 18px; list-style: disc; }
+.result-md li { margin-bottom: 4px; }
+.result-md strong { color: var(--accent); font-weight: 500; }
+.result-md pre {
+  background: var(--code-bg); border: 1px solid var(--border-subtle);
+  border-radius: 6px; padding: 12px 14px; margin: 10px 0;
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11.5px;
+  overflow-x: auto; color: var(--text-secondary);
+}
+
+/* ── Explain expand ── */
+.explain-body { overflow: hidden; transition: max-height 200ms ease-out; max-height: 0; }
+
+/* ── Settings drawer ── */
+#drawerOverlay {
+  display: none; position: fixed; inset: 0; z-index: 40;
+  background: rgba(0,0,0,0.35); backdrop-filter: blur(2px);
+}
+#settingsDrawer {
+  position: fixed; top: 0; bottom: 0; right: 0; width: 280px; z-index: 50;
+  background: var(--bg-surface); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform 200ms ease-out;
+  box-shadow: var(--shadow-md);
+}
+#settingsDrawer.open { transform: translateX(0); }
+
+/* ── Error banner ── */
+#errorBanner {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 60;
+  background: rgba(239,68,68,0.08); border-bottom: 1px solid rgba(239,68,68,0.2);
+  padding: 7px 16px; display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: #f87171;
+  transform: translateY(-100%); transition: transform 200ms ease-out;
+}
+#errorBanner.show { transform: translateY(0); }
+
+/* ── Setting row ── */
+.setting-section { display: flex; flex-direction: column; gap: 10px; }
+.setting-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-bottom: 4px; }
+.setting-btn {
+  font-family: inherit; font-size: 11px; padding: 6px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent; color: var(--text-secondary);
+  cursor: pointer; transition: border-color 150ms, color 150ms, background 150ms; text-align: left;
+  display: flex; align-items: center; gap: 8px;
+}
+.setting-btn:hover { border-color: var(--text-muted); color: var(--text-primary); background: var(--bg-hover); }
+.setting-btn.danger { color: #f87171; border-color: rgba(239,68,68,0.25); }
+.setting-btn.danger:hover { border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.06); }
+
+/* ── Theme toggle buttons ── */
+.theme-choice {
+  flex: 1; font-family: inherit; font-size: 11px; padding: 6px 0; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent; color: var(--text-secondary);
+  cursor: pointer; transition: border-color 150ms, color 150ms, background 150ms;
+}
+.theme-choice:hover { border-color: var(--text-muted); color: var(--text-primary); }
+.theme-choice.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+/* ── No API warning ── */
+.warn-card {
+  background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 8px; padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.warn-icon { color: #F59E0B; flex-shrink: 0; margin-top: 1px; }
+.warn-title { font-size: 12px; font-weight: 500; color: #FCD34D; }
+.warn-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.warn-action {
+  margin-left: auto; font-size: 11px; color: #FCD34D; white-space: nowrap;
+  border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 4px 10px;
+  background: transparent; cursor: pointer; font-family: inherit;
+  transition: background 150ms;
+}
+.warn-action:hover { background: rgba(245,158,11,0.1); }
+</style>
+</head>
+<body id="body">
+
+<div id="window">
+
+  <!-- Error Banner -->
+  <div id="errorBanner">
+    <i data-lucide="alert-circle" style="width:13px;height:13px;flex-shrink:0"></i>
+    <span id="errorMsg">API 连接失败，请检查 API Key 和网络设置。</span>
+    <button onclick="hideError()" class="icon-btn" style="margin-left:auto;padding:2px">
+      <i data-lucide="x" style="width:13px;height:13px"></i>
+    </button>
+  </div>
+
+  <!-- Title bar -->
+  <div class="titlebar">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <span class="logo-text">PromptForge</span>
+    </div>
+    <div class="titlebar-actions">
+      <button onclick="toggleTheme()" class="icon-btn" style="padding:6px" title="切换主题">
+        <i id="themeIcon" data-lucide="moon" style="width:14px;height:14px"></i>
+      </button>
+      <button onclick="openSettings()" class="icon-btn" style="padding:6px" title="设置 ⌘,">
+        <i data-lucide="settings" style="width:14px;height:14px"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- State tabs -->
+  <div class="state-tabs">
+    <button class="tab-btn" id="tab-input" onclick="goState('input')">输入态</button>
+    <button class="tab-btn" id="tab-ask"   onclick="goState('ask')">追问态</button>
+    <button class="tab-btn" id="tab-result" onclick="goState('result')">结果态</button>
+  </div>
+
+  <!-- Content -->
+  <div class="content-area">
+
+    <!-- ═══ STATE 1: INPUT ═══ -->
+    <div id="state-input" class="state-panel active-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 40px 52px">
+
+      <div id="noApiCard" class="warn-card" style="display:none;max-width:480px;width:100%;margin-bottom:20px">
+        <i data-lucide="key" class="warn-icon" style="width:15px;height:15px"></i>
+        <div>
+          <div class="warn-title">尚未配置 API Key</div>
+          <div class="warn-sub">配置后即可开始优化提示词</div>
+        </div>
+        <button class="warn-action" onclick="openSettings()">去设置 →</button>
+      </div>
+
+      <p style="font-size:11px;color:var(--text-faint);margin-bottom:14px;letter-spacing:0.04em">
+        支持中文 / English &nbsp;·&nbsp;
+        <kbd style="font-family:monospace;background:var(--bg-raised);border:1px solid var(--border);color:var(--text-muted);padding:2px 6px;border-radius:4px;font-size:10px">⌘K</kbd>
+        新对话
+      </p>
+
+      <div style="position:relative;max-width:520px;width:100%">
+        <textarea id="mainInput" rows="6" placeholder="描述你想让 AI 做什么…（例如：帮我写一段小红书爆款文案）" oninput="onInputChange()"></textarea>
+        <span id="charCount" style="position:absolute;bottom:12px;right:14px;font-size:10px;color:var(--text-faint)">0</span>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn-primary" id="optimizeBtn" onclick="goToAsk()" disabled>
+          <i data-lucide="sparkles" style="width:13px;height:13px"></i>
+          优化提示词
+          <kbd>⌘↵</kbd>
+        </button>
+        <button class="btn-secondary" onclick="goToResult(true)">
+          <i data-lucide="zap" style="width:13px;height:13px"></i>
+          直接生成
+        </button>
+      </div>
+
+      <div class="status-bar">
+        <span style="display:flex;align-items:center;gap:6px">
+          <span class="status-dot pulse"></span>API 已连接
+        </span>
+        <span>今日已优化 <strong style="color:var(--text-secondary)">12</strong> 次</span>
+        <span style="margin-left:auto">v0.1.0</span>
+      </div>
+    </div>
+
+    <!-- ═══ STATE 2: ASK ═══ -->
+    <div id="state-ask" class="state-panel hidden-state" style="display:flex;flex-direction:column;padding:14px 24px 52px;overflow-y:auto;gap:12px">
+
+      <!-- Original input -->
+      <div>
+        <button onclick="toggleOriginal()" style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-faint);background:none;border:none;cursor:pointer;padding:0;font-family:inherit;transition:color 150ms" onmouseover="this.style.color='var(--text-muted)'" onmouseout="this.style.color='var(--text-faint)'">
+          <i data-lucide="chevron-right" id="origChevron" style="width:11px;height:11px;transition:transform 150ms"></i>
+          原始输入
+        </button>
+        <div id="origText" style="display:none;margin-top:6px;font-size:11px;color:var(--text-muted);background:var(--bg-raised);border:1px solid var(--border-subtle);border-radius:6px;padding:10px 12px;max-width:540px;line-height:1.6"></div>
+      </div>
+
+      <!-- Progress -->
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="prog-dot active" id="dot1"></span>
+        <span class="prog-dot" id="dot2"></span>
+        <span class="prog-dot" id="dot3"></span>
+        <span style="font-size:11px;color:var(--text-faint);margin-left:4px" id="dotLabel">1 / 3</span>
+        <button onclick="skipQuestion()" style="margin-left:auto;font-size:11px;color:var(--text-faint);background:none;border:none;cursor:pointer;font-family:inherit;transition:color 150ms" onmouseover="this.style.color='var(--text-muted)'" onmouseout="this.style.color='var(--text-faint)'">跳过此问题 →</button>
+      </div>
+
+      <!-- Q Cards -->
+      <div id="card1" class="card" style="border-color:var(--border)">
+        <p style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:10px">你的目标受众是谁？</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+          <button class="chip" data-group="1" data-val="18-25岁女性">18–25 岁女性</button>
+          <button class="chip" data-group="1" data-val="25-35岁职场女性">25–35 岁职场女性</button>
+          <button class="chip" data-group="1" data-val="学生党">学生党</button>
+          <button class="chip" data-group="1" data-val="宝妈群体">宝妈群体</button>
+        </div>
+        <input type="text" placeholder="或自定义输入…" />
+      </div>
+
+      <div id="card2" class="card" style="display:none;border-color:var(--border)">
+        <p style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:10px">希望文案的风格是？</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+          <button class="chip" data-group="2" data-val="活泼可爱">活泼可爱</button>
+          <button class="chip" data-group="2" data-val="专业种草">专业种草</button>
+          <button class="chip" data-group="2" data-val="真实测评">真实测评</button>
+          <button class="chip" data-group="2" data-val="高端优雅">高端优雅</button>
+        </div>
+        <input type="text" placeholder="或自定义输入…" />
+      </div>
+
+      <div id="card3" class="card" style="display:none;border-color:var(--border)">
+        <p style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:10px">产品的核心卖点是？</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+          <button class="chip" data-group="3" data-val="成分天然无添加">成分天然无添加</button>
+          <button class="chip" data-group="3" data-val="快速见效">快速见效</button>
+          <button class="chip" data-group="3" data-val="性价比高">性价比高</button>
+          <button class="chip" data-group="3" data-val="明星同款">明星同款</button>
+        </div>
+        <input type="text" placeholder="或自定义输入…" />
+      </div>
+
+      <div style="padding-top:4px">
+        <button class="btn-primary" id="generateBtn" onclick="goToResult(false)" disabled style="width:100%">
+          <i data-lucide="sparkles" style="width:13px;height:13px"></i>
+          生成优化后的提示词
+        </button>
+      </div>
+
+      <div class="status-bar">
+        <span style="display:flex;align-items:center;gap:6px"><span class="status-dot"></span>API 已连接</span>
+        <span style="margin-left:auto">v0.1.0</span>
+      </div>
+    </div>
+
+    <!-- ═══ STATE 3: RESULT ═══ -->
+    <div id="state-result" class="state-panel hidden-state" style="display:flex;flex-direction:column;padding:12px 20px 52px;gap:10px;overflow:hidden">
+
+      <div style="display:flex;gap:12px;flex:1;overflow:hidden">
+
+        <!-- Left: original -->
+        <div style="width:188px;flex-shrink:0;display:flex;flex-direction:column;gap:6px">
+          <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-faint)">原始需求</p>
+          <div class="card-subtle" style="flex:1;font-size:11px;color:var(--text-muted);line-height:1.65">
+            帮我写一段小红书爆款文案，推广我的新产品护肤品牌，目标受众是 25-35 岁职场女性，风格专业种草，核心卖点：成分天然无添加
+          </div>
+        </div>
+
+        <!-- Right: result -->
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-faint)">优化后的提示词</p>
+            <div style="display:flex;gap:2px">
+              <button id="copyBtn" onclick="copyResult()" class="icon-btn" style="padding:5px 8px;font-size:11px;gap:5px;display:flex;align-items:center">
+                <i data-lucide="copy" style="width:13px;height:13px"></i>
+                <span id="copyLabel">复制</span>
+              </button>
+              <button onclick="regenResult()" class="icon-btn" style="padding:5px 8px" title="重新生成">
+                <i data-lucide="refresh-cw" style="width:13px;height:13px"></i>
+              </button>
+              <button class="icon-btn" style="padding:5px 8px" title="保存">
+                <i data-lucide="bookmark" style="width:13px;height:13px"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="resultArea" style="flex:1;overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px">
+            <!-- Skeleton -->
+            <div id="resultSkeleton" style="display:flex;flex-direction:column;gap:10px">
+              <div class="shimmer" style="width:65%"></div>
+              <div class="shimmer" style="width:100%"></div>
+              <div class="shimmer" style="width:82%"></div>
+              <div class="shimmer" style="width:100%;margin-top:4px"></div>
+              <div class="shimmer" style="width:57%"></div>
+              <div class="shimmer" style="width:90%"></div>
+              <div class="shimmer" style="width:74%;margin-top:4px"></div>
+            </div>
+            <!-- Content -->
+            <div id="resultContent" class="result-md" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Explain -->
+      <div style="border:1px solid var(--border-subtle);border-radius:8px;overflow:hidden">
+        <button onclick="toggleExplain()" style="width:100%;display:flex;align-items:center;gap:8px;padding:10px 16px;background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:12px;color:var(--text-muted);text-align:left;transition:background 150ms,color 150ms" onmouseover="this.style.background='var(--bg-hover)';this.style.color='var(--text-primary)'" onmouseout="this.style.background='transparent';this.style.color='var(--text-muted)'">
+          <i data-lucide="info" style="width:12px;height:12px;flex-shrink:0"></i>
+          为什么这样设计
+          <i data-lucide="chevron-down" id="explainChevron" style="width:12px;height:12px;margin-left:auto;transition:transform 200ms"></i>
+        </button>
+        <div id="explainBody" class="explain-body">
+          <div style="padding:10px 16px;font-size:11px;color:var(--text-muted);line-height:1.7;border-top:1px solid var(--border-subtle)">
+            优化后的提示词明确了 <strong style="color:var(--text-secondary)">角色定位</strong>（专业小红书种草博主）、<strong style="color:var(--text-secondary)">受众画像</strong>（25-35岁职场女性）、<strong style="color:var(--text-secondary)">输出格式</strong>（含表情、话题标签、结构化段落），以及 <strong style="color:var(--text-secondary)">情感触发点</strong>（天然成分 → 安全感诉求）。结构化提示词帮助 AI 减少歧义，输出更贴近实际使用场景。
+          </div>
+        </div>
+      </div>
+
+      <!-- CTAs -->
+      <div style="display:flex;gap:8px">
+        <button class="btn-secondary" onclick="goState('ask')" style="flex:1">
+          <i data-lucide="wand-2" style="width:13px;height:13px"></i>
+          再优化一次
+        </button>
+        <button class="btn-primary" onclick="newConversation()" style="flex:1">
+          <i data-lucide="plus" style="width:13px;height:13px"></i>
+          开始新对话
+          <kbd>⌘K</kbd>
+        </button>
+      </div>
+
+      <div class="status-bar">
+        <span style="display:flex;align-items:center;gap:6px"><span class="status-dot"></span>API 已连接</span>
+        <span>今日已优化 <strong style="color:var(--text-secondary)">12</strong> 次</span>
+        <span style="margin-left:auto">v0.1.0</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ Settings Drawer ══ -->
+<div id="drawerOverlay" onclick="closeSettings()"></div>
+<div id="settingsDrawer">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0">
+    <p style="font-size:13px;font-weight:600;color:var(--text-primary)">设置</p>
+    <button onclick="closeSettings()" class="icon-btn" style="padding:5px">
+      <i data-lucide="x" style="width:14px;height:14px"></i>
+    </button>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:22px">
+
+    <div class="setting-section">
+      <div class="setting-label">API 配置</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div>
+          <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">Base URL</label>
+          <input type="text" value="https://api.openai.com/v1" />
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">API Key</label>
+          <input type="password" placeholder="sk-···" />
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-section">
+      <div class="setting-label">模型</div>
+      <select>
+        <option>GPT-4o</option>
+        <option>Claude 3.5 Sonnet</option>
+        <option>GPT-4 Turbo</option>
+        <option>自定义…</option>
+      </select>
+    </div>
+
+    <div class="setting-section">
+      <div class="setting-label">语言</div>
+      <div style="display:flex;gap:6px">
+        <button class="theme-choice active">中文</button>
+        <button class="theme-choice">English</button>
+      </div>
+    </div>
+
+    <div class="setting-section">
+      <div class="setting-label">主题</div>
+      <div style="display:flex;gap:6px">
+        <button class="theme-choice" id="tc-dark"  onclick="setTheme('dark')">深色</button>
+        <button class="theme-choice" id="tc-light" onclick="setTheme('light')">浅色</button>
+        <button class="theme-choice" id="tc-auto"  onclick="setTheme('auto')">系统</button>
+      </div>
+    </div>
+
+    <div class="setting-section">
+      <div class="setting-label">数据</div>
+      <button class="setting-btn">
+        <i data-lucide="download" style="width:13px;height:13px"></i>
+        导出历史记录
+      </button>
+      <button class="setting-btn danger">
+        <i data-lucide="trash-2" style="width:13px;height:13px"></i>
+        清除所有历史
+      </button>
+    </div>
+
+    <div class="setting-section">
+      <div class="setting-label">快捷键</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--text-muted)">
+        <div style="display:flex;justify-content:space-between">
+          <span>提交 / 生成</span>
+          <kbd style="font-family:monospace;background:var(--bg-raised);border:1px solid var(--border);color:var(--text-secondary);padding:2px 7px;border-radius:4px;font-size:10px">⌘↵</kbd>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>新对话</span>
+          <kbd style="font-family:monospace;background:var(--bg-raised);border:1px solid var(--border);color:var(--text-secondary);padding:2px 7px;border-radius:4px;font-size:10px">⌘K</kbd>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>打开设置</span>
+          <kbd style="font-family:monospace;background:var(--bg-raised);border:1px solid var(--border);color:var(--text-secondary);padding:2px 7px;border-radius:4px;font-size:10px">⌘,</kbd>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0">
+    <button class="btn-primary" onclick="closeSettings()" style="width:100%;font-size:12px">保存并关闭</button>
+  </div>
+</div>
+
+<script>
+  // ── Theme ──
+  let isDark = true;
+  let currentThemePref = 'dark';
+
+  function setTheme(pref) {
+    currentThemePref = pref;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const useDark = pref === 'dark' || (pref === 'auto' && prefersDark);
+    isDark = useDark;
+
+    if (useDark) {
+      document.body.classList.remove('light');
+    } else {
+      document.body.classList.add('light');
+    }
+
+    // Theme icon
+    const icon = document.getElementById('themeIcon');
+    icon.setAttribute('data-lucide', useDark ? 'moon' : 'sun');
+
+    // Setting buttons
+    ['dark','light','auto'].forEach(id => {
+      const btn = document.getElementById('tc-' + id);
+      if (btn) btn.classList.toggle('active', id === pref);
+    });
+
+    lucide.createIcons();
+  }
+
+  function toggleTheme() {
+    setTheme(isDark ? 'light' : 'dark');
+  }
+
+  // ── State ──
+  let currentState = 'input';
+  let currentQ = 1;
+
+  function goState(s) {
+    ['input','ask','result'].forEach(id => {
+      const el = document.getElementById('state-' + id);
+      el.classList.toggle('active-state', id === s);
+      el.classList.toggle('hidden-state', id !== s);
+    });
+    currentState = s;
+    updateTabs();
+    if (s === 'result') startResultLoading();
+  }
+
+  function updateTabs() {
+    ['input','ask','result'].forEach(id => {
+      document.getElementById('tab-' + id).classList.toggle('active', id === currentState);
+    });
+  }
+
+  // ── Input ──
+  function onInputChange() {
+    const val = document.getElementById('mainInput').value;
+    document.getElementById('charCount').textContent = val.length;
+    const ok = val.trim().length >= 3;
+    const btn = document.getElementById('optimizeBtn');
+    btn.disabled = !ok;
+  }
+
+  function goToAsk() {
+    const val = document.getElementById('mainInput').value.trim();
+    if (!val) return;
+    document.getElementById('origText').textContent = val;
+    goState('ask');
+  }
+
+  // ── Ask ──
+  function updateProgress(q) {
+    currentQ = q;
+    document.getElementById('dotLabel').textContent = q + ' / 3';
+    for (let i = 1; i <= 3; i++) {
+      document.getElementById('dot' + i).classList.toggle('active', i <= q);
+    }
+    for (let i = 2; i <= 3; i++) {
+      document.getElementById('card' + i).style.display = i <= q ? 'block' : 'none';
+    }
+    document.getElementById('generateBtn').disabled = q < 3;
+  }
+
+  function skipQuestion() {
+    if (currentQ < 3) updateProgress(currentQ + 1);
+    else goState('result');
+  }
+
+  function toggleOriginal() {
+    const el = document.getElementById('origText');
+    const ch = document.getElementById('origChevron');
+    const vis = el.style.display !== 'none';
+    el.style.display = vis ? 'none' : 'block';
+    ch.style.transform = vis ? '' : 'rotate(90deg)';
+  }
+
+  // Chip clicks
+  document.addEventListener('click', function(e) {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const group = chip.dataset.group;
+    document.querySelectorAll('.chip[data-group="' + group + '"]').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    const g = parseInt(group);
+    if (g < 3) setTimeout(() => updateProgress(g + 1), 280);
+    else document.getElementById('generateBtn').disabled = false;
+  });
+
+  // ── Result ──
+  const RESULT_HTML = `<h3>🎯 角色设定</h3>
+<p>你是一位拥有 50 万粉丝的小红书美妆护肤博主，擅长用真实测评打动职场女性读者。</p>
+<h3>📝 任务</h3>
+<p>请为一款<strong>天然成分护肤品</strong>写一篇小红书爆款笔记，要求：</p>
+<ul>
+<li>开头 2 句话制造共鸣（针对 25-35 岁职场女性的护肤痛点）</li>
+<li>中间用「成分分析 + 亲测体验」结构，突出<strong>天然无添加</strong>的安全感</li>
+<li>每段落加适量 Emoji，语气自然不浮夸</li>
+<li>结尾加 5 个精准话题标签（#护肤 #天然成分 等）</li>
+</ul>
+<h3>📐 格式要求</h3>
+<pre>标题：[痛点词] + [产品亮点] + [情感词]（25字以内）
+正文：300-400字
+话题标签：5个</pre>
+<h3>🚫 避免</h3>
+<p>不要使用夸大词汇（如"神仙"、"逆天"），保持真实可信的种草语气。</p>`;
+
+  let resultTimer = null;
+
+  function startResultLoading() {
+    const sk = document.getElementById('resultSkeleton');
+    const ct = document.getElementById('resultContent');
+    sk.style.display = 'flex';
+    sk.style.flexDirection = 'column';
+    ct.style.display = 'none';
+    ct.innerHTML = '';
+    clearTimeout(resultTimer);
+    resultTimer = setTimeout(() => {
+      sk.style.display = 'none';
+      ct.style.display = 'block';
+      streamHTML(ct, RESULT_HTML);
+    }, 1300);
+  }
+
+  function streamHTML(el, html) {
+    let i = 0;
+    el.classList.add('cursor-blink');
+    const iv = setInterval(() => {
+      i += Math.floor(Math.random() * 5) + 3;
+      if (i >= html.length) { i = html.length; clearInterval(iv); el.classList.remove('cursor-blink'); }
+      el.innerHTML = html.substring(0, i);
+    }, 16);
+  }
+
+  function regenResult() { startResultLoading(); }
+
+  function copyResult() {
+    const text = document.getElementById('resultContent').innerText || '';
+    navigator.clipboard.writeText(text).catch(() => {});
+    const label = document.getElementById('copyLabel');
+    const icon = document.querySelector('#copyBtn i');
+    label.textContent = '已复制';
+    label.style.color = '#10B981';
+    icon.style.color = '#10B981';
+    setTimeout(() => { label.textContent = '复制'; label.style.color = ''; icon.style.color = ''; }, 1600);
+  }
+
+  function toggleExplain() {
+    const body = document.getElementById('explainBody');
+    const ch = document.getElementById('explainChevron');
+    const open = body.style.maxHeight && body.style.maxHeight !== '0px';
+    body.style.maxHeight = open ? '0px' : '160px';
+    ch.style.transform = open ? '' : 'rotate(180deg)';
+  }
+
+  function newConversation() {
+    document.getElementById('mainInput').value = '';
+    document.getElementById('charCount').textContent = '0';
+    document.getElementById('optimizeBtn').disabled = true;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+    for (let i = 2; i <= 3; i++) document.getElementById('card' + i).style.display = 'none';
+    currentQ = 1;
+    document.getElementById('dot1').classList.add('active');
+    document.getElementById('dot2').classList.remove('active');
+    document.getElementById('dot3').classList.remove('active');
+    document.getElementById('dotLabel').textContent = '1 / 3';
+    document.getElementById('generateBtn').disabled = true;
+    goState('input');
+  }
+
+  function goToResult(quick) { goState('result'); }
+
+  // ── Settings ──
+  function openSettings() {
+    document.getElementById('drawerOverlay').style.display = 'block';
+    setTimeout(() => document.getElementById('settingsDrawer').classList.add('open'), 10);
+  }
+  function closeSettings() {
+    document.getElementById('settingsDrawer').classList.remove('open');
+    setTimeout(() => document.getElementById('drawerOverlay').style.display = 'none', 200);
+  }
+
+  // ── Error ──
+  function showError(msg) {
+    document.getElementById('errorMsg').textContent = msg || 'API 连接失败，请检查设置。';
+    document.getElementById('errorBanner').classList.add('show');
+  }
+  function hideError() {
+    document.getElementById('errorBanner').classList.remove('show');
+  }
+
+  // ── Keyboard ──
+  document.addEventListener('keydown', e => {
+    const mod = e.metaKey || e.ctrlKey;
+    if (mod && e.key === ',') { e.preventDefault(); openSettings(); }
+    if (mod && e.key === 'k') { e.preventDefault(); newConversation(); }
+    if (mod && e.key === 'Enter') {
+      e.preventDefault();
+      if (currentState === 'input') goToAsk();
+      else if (currentState === 'ask') goToResult(false);
+    }
+  });
+
+  // ── Init ──
+  setTheme('dark');
+  updateTabs();
+  lucide.createIcons();
+</script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+/* Design Tokens — PromptForge */
+
+:root {
+  --accent: #7C3AED;
+  --accent-dim: #6D28D9;
+  --accent-soft: rgba(124, 58, 237, 0.12);
+  --accent-border: rgba(124, 58, 237, 0.4);
+
+  /* Dark defaults */
+  --bg-base: #0f0f11;
+  --bg-surface: #18181b;
+  --bg-raised: #1f1f23;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-input: #141416;
+
+  --border: #2d2d32;
+  --border-subtle: #222226;
+
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #52525b;
+  --text-faint: #3f3f46;
+
+  --code-bg: #141416;
+  --dot-inactive: #3f3f46;
+
+  --green-success: #10B981;
+  --red-error: #f87171;
+  --amber-warning: #F59E0B;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.light {
+  --bg-base: #f8f8fa;
+  --bg-surface: #ffffff;
+  --bg-raised: #f2f2f5;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-input: #ffffff;
+
+  --border: #e2e2e8;
+  --border-subtle: #ececf0;
+
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+  --text-faint: #a1a1aa;
+
+  --code-bg: #f4f4f6;
+  --dot-inactive: #d4d4d8;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
