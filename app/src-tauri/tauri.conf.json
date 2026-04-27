@@ -37,5 +37,14 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM5QUU4QTE4MDc5OTQ3NzMKUldSelI1a0hHSXF1eVFIZ1hWUGZDTDdOVFRVNzB2R1VtN09zcDNzYThCdGI2UU5zTVJGWENJMW4K",
+      "endpoints": [
+        "https://github.com/gaowei90098-creator/PromptForge/releases/latest/download/latest.json"
+      ],
+      "dialog": true
+    }
   }
 }
