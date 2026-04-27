@@ -1,85 +1,92 @@
 <div align="center">
 
-<img src="./app/src-tauri/icons/128x128@2x.png" width="96" alt="PromptForge icon" />
+<img src="./app/src-tauri/icons/128x128@2x.png" width="96" alt="PromptForge" />
 
 # PromptForge
 
-**Turn vague ideas into high-quality AI prompts — in seconds.**
+**把模糊的想法变成高质量 AI 提示词 — 秒级完成**
 
-A lightweight desktop app (macOS / Windows) powered by a **Meta Prompt Engine** built on 18+ prompt engineering techniques.
+Turn vague ideas into high-quality AI prompts, in seconds.
 
 <br/>
 
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?style=flat-square&logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![Tauri](https://img.shields.io/badge/Tauri-v2-FFC131?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![GitHub stars](https://img.shields.io/github/stars/gaowei90098-creator/PromptForge?style=flat-square)](https://github.com/gaowei90098-creator/PromptForge/stargazers)
 
 </div>
 
 ---
 
-## How it works
+<div align="center">
+<img src="./app/src/assets/hero.png" alt="PromptForge Screenshot" width="85%" />
+</div>
+
+---
+
+## 工作原理 / How it works
 
 ```
-Your rough idea
+你的模糊想法
       ↓
-  2–3 targeted clarifying questions  (AI-generated, task-specific)
+  2–3 个关键追问（AI 按任务类型定制，非通用模板）
       ↓
-  Technique-aware optimized prompt   (ready to paste into any AI)
+  注入提示词工程技术的高质量成品提示词（流式输出，可直接使用）
 ```
 
-1. **Input** — Describe what you want, as rough as you like
-2. **Ask** — PromptForge detects the task type and asks the 2–3 questions that actually matter, with one-click chip answers
-3. **Result** — A fully structured, technique-injected prompt, streamed in real time
+1. **输入** — 随意描述你的需求，哪怕很粗糙
+2. **追问** — PromptForge 识别任务类型，只问真正影响质量的维度，一键 chip 作答
+3. **生成** — 结构化、技术感知的提示词实时流出，粘贴进任意 AI 即用
 
 ---
 
-## Prompt Engineering Techniques
+## 提示词工程技术矩阵
 
-PromptForge selects techniques automatically based on task type:
+PromptForge 根据任务类型自动选择并注入最合适的技术：
 
-| Task | Techniques Applied |
-|------|--------------------|
-| 💻 Code | Chain-of-Thought · Few-shot · Program-Aided Reasoning |
-| ✍️ Copywriting | Directional Stimulus · Generate Knowledge · Few-shot |
-| 📊 Analysis | Self-Consistency · Chain-of-Thought · Tree of Thoughts |
-| 🎨 Creative | Directional Stimulus · Generate Knowledge · Zero-shot CoT |
-| 🖼️ Design | Few-shot · Chain-of-Thought · Directional Stimulus |
+| 任务类型 | 应用的技术 |
+|---------|-----------|
+| 💻 代码 | Chain-of-Thought · Few-shot · Program-Aided Reasoning |
+| ✍️ 文案 | Directional Stimulus · Generate Knowledge · Few-shot |
+| 📊 分析 | Self-Consistency · Chain-of-Thought · Tree of Thoughts |
+| 🎨 创意 | Directional Stimulus · Generate Knowledge · Zero-shot CoT |
+| 🖼️ 设计 | Few-shot · Chain-of-Thought · Directional Stimulus |
 
-> Inspired by the [Prompt Engineering Guide](https://www.promptingguide.ai/) — 18 techniques, applied where they matter most.
-
----
-
-## Features
-
-- 🧠 **Meta Prompt Engine** — task-type detection + technique matrix injection
-- ⚡ **Streaming output** — real-time generation with abort support
-- 🪟 **Frameless UI** — native transparent window, dark / light theme
-- 🔒 **Zero secret persistence** — API key lives in memory only, never written to disk
-- 📅 **Daily usage counter** — auto-resets at midnight
-- 🔌 **OpenAI-compatible** — works with OpenAI, Anthropic proxies, local LLMs
+> 技术体系参考 [Prompt Engineering Guide](https://www.promptingguide.ai/) — 18 种技术，按场景精准投放
 
 ---
 
-## Tech Stack
+## 核心特性
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Vue 3 + TypeScript + Pinia + Vite |
-| Desktop | Tauri v2 (Rust) |
-| Rendering | marked + DOMPurify (XSS-safe) |
-| Icons | lucide-vue-next |
+- 🧠 **Meta Prompt 引擎** — 任务类型检测 + 技术矩阵注入，非套模板
+- ⚡ **流式输出** — 实时 token 生成，支持随时中止
+- 🪟 **无边框 UI** — 原生透明窗口，深色 / 浅色主题
+- 🔒 **密钥零持久化** — API Key 仅存内存，从不写入磁盘或 localStorage
+- 📅 **每日用量统计** — 自动在零点重置
+- 🔌 **兼容任意 OpenAI 协议** — OpenAI、Claude 代理、本地 LLM 均可接入
 
 ---
 
-## Getting Started
+## 技术栈
 
-### Prerequisites
+| 层 | 技术 |
+|----|------|
+| 前端 | Vue 3 + TypeScript + Pinia + Vite |
+| 桌面壳 | Tauri v2 (Rust) |
+| Markdown 渲染 | marked + DOMPurify（XSS 安全） |
+| 图标 | lucide-vue-next |
+
+---
+
+## 快速开始
+
+### 前置要求
 
 - [Node.js](https://nodejs.org/) 18+
-- [Rust](https://www.rust-lang.org/tools/install) — only needed for desktop build
+- [Rust](https://www.rust-lang.org/tools/install) — 仅打包桌面应用时需要
 
-### Dev mode
+### 开发模式
 
 ```bash
 cd app
@@ -87,16 +94,16 @@ npm install
 npm run dev
 ```
 
-### Build desktop app
+### 打包桌面应用
 
 ```bash
 cd app
-npm run build                        # build frontend
-source ~/.cargo/env                  # load Rust toolchain
-npx @tauri-apps/cli build            # package .app + .dmg
+npm run build                        # 构建前端
+source ~/.cargo/env                  # 加载 Rust 工具链
+npx @tauri-apps/cli build            # 打包 .app + .dmg
 ```
 
-**Output:**
+**产物：**
 ```
 src-tauri/target/release/bundle/macos/PromptForge.app   (~8 MB)
 src-tauri/target/release/bundle/dmg/PromptForge_*.dmg   (~3 MB)
@@ -104,21 +111,21 @@ src-tauri/target/release/bundle/dmg/PromptForge_*.dmg   (~3 MB)
 
 ---
 
-## Configuration
+## 配置
 
-Click the ⚙️ gear icon to open Settings:
+点击右上角 ⚙️ 齿轮图标打开设置：
 
-| Field | Description |
-|-------|-------------|
-| API Key | Any OpenAI-compatible key (`sk-...`) |
-| Base URL | API endpoint — default `https://api.openai.com/v1` |
-| Model | `gpt-4o`, `gpt-4o-mini`, `claude-3-5-sonnet`, … |
+| 字段 | 说明 |
+|------|------|
+| API Key | 任意 OpenAI 兼容密钥（`sk-...`） |
+| Base URL | 接口地址，默认 `https://api.openai.com/v1` |
+| 模型 | `gpt-4o`、`gpt-4o-mini`、`claude-3-5-sonnet` 等 |
 
-> The API key is held **in memory only** and is never written to localStorage or disk.
+> API Key 仅保存在内存中，不会写入 localStorage 或磁盘。
 
 ---
 
-## Project Structure
+## 项目结构
 
 ```
 app/
@@ -127,7 +134,7 @@ app/
 │   ├── components/     # TitleBar · SettingsDrawer · ErrorBanner · StatusBar
 │   ├── stores/         # Pinia store
 │   ├── composables/    # useApi · useTheme · useKeyboard
-│   ├── lib/            # metaPrompt.ts — engine core
-│   └── styles/         # design tokens + global CSS
-└── src-tauri/          # Rust / Tauri backend
+│   ├── lib/            # metaPrompt.ts — 引擎核心
+│   └── styles/         # 设计 token + 全局 CSS
+└── src-tauri/          # Rust / Tauri 后端
 ```
