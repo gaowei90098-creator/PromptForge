@@ -1,56 +1,74 @@
+<div align="center">
+
+<img src="./app/src-tauri/icons/128x128@2x.png" width="96" alt="PromptForge icon" />
+
 # PromptForge
 
-> Turn vague ideas into high-quality AI prompts — in seconds.
+**Turn vague ideas into high-quality AI prompts — in seconds.**
 
-PromptForge is a lightweight desktop app (macOS / Windows) that transforms rough user input into precision-crafted prompts using a **Meta Prompt Engine** built on 18+ prompt engineering techniques from the [Prompt Engineering Guide](https://www.promptingguide.ai/).
+A lightweight desktop app (macOS / Windows) powered by a **Meta Prompt Engine** built on 18+ prompt engineering techniques.
 
-![PromptForge screenshot](./design/cover.png)
+<br/>
+
+[![Vue 3](https://img.shields.io/badge/Vue-3-42b883?style=flat-square&logo=vue.js&logoColor=white)](https://vuejs.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-v2-FFC131?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+
+</div>
 
 ---
 
 ## How it works
 
 ```
-Your idea  →  Targeted follow-up questions  →  Optimized prompt
+Your rough idea
+      ↓
+  2–3 targeted clarifying questions  (AI-generated, task-specific)
+      ↓
+  Technique-aware optimized prompt   (ready to paste into any AI)
 ```
 
-1. **Input** — Describe what you want, however roughly
-2. **Ask** — The engine identifies 2–3 critical dimensions and asks focused clarifying questions with one-click chip answers
-3. **Result** — A fully structured, technique-aware prompt ready to paste into any AI (Claude, GPT, Gemini…)
+1. **Input** — Describe what you want, as rough as you like
+2. **Ask** — PromptForge detects the task type and asks the 2–3 questions that actually matter, with one-click chip answers
+3. **Result** — A fully structured, technique-injected prompt, streamed in real time
 
 ---
 
-## Prompt Engineering Techniques Applied
+## Prompt Engineering Techniques
 
-PromptForge automatically selects and applies the right techniques based on task type:
+PromptForge selects techniques automatically based on task type:
 
-| Task | Techniques |
-|------|-----------|
-| Code | Chain-of-Thought · Few-shot · Program-Aided Reasoning |
-| Copywriting | Directional Stimulus · Generate Knowledge · Few-shot |
-| Analysis | Self-Consistency · Chain-of-Thought · Tree of Thoughts |
-| Creative | Directional Stimulus · Generate Knowledge · Zero-shot CoT |
-| Design | Few-shot · Chain-of-Thought · Directional Stimulus |
+| Task | Techniques Applied |
+|------|--------------------|
+| 💻 Code | Chain-of-Thought · Few-shot · Program-Aided Reasoning |
+| ✍️ Copywriting | Directional Stimulus · Generate Knowledge · Few-shot |
+| 📊 Analysis | Self-Consistency · Chain-of-Thought · Tree of Thoughts |
+| 🎨 Creative | Directional Stimulus · Generate Knowledge · Zero-shot CoT |
+| 🖼️ Design | Few-shot · Chain-of-Thought · Directional Stimulus |
+
+> Inspired by the [Prompt Engineering Guide](https://www.promptingguide.ai/) — 18 techniques, applied where they matter most.
 
 ---
 
 ## Features
 
-- **Meta Prompt Engine** — task-type detection + technique matrix injection
-- **Streaming output** — real-time token-by-token generation with abort support
-- **Frameless UI** — native-feeling transparent window, dark/light theme
-- **Zero persistence of secrets** — API key is never written to disk
-- **Daily usage counter** — tracks today's generations, auto-resets at midnight
-- **Works with any OpenAI-compatible API** — OpenAI, Claude via proxy, local LLMs
+- 🧠 **Meta Prompt Engine** — task-type detection + technique matrix injection
+- ⚡ **Streaming output** — real-time generation with abort support
+- 🪟 **Frameless UI** — native transparent window, dark / light theme
+- 🔒 **Zero secret persistence** — API key lives in memory only, never written to disk
+- 📅 **Daily usage counter** — auto-resets at midnight
+- 🔌 **OpenAI-compatible** — works with OpenAI, Anthropic proxies, local LLMs
 
 ---
 
 ## Tech Stack
 
-- **Frontend** — Vue 3 + TypeScript + Pinia + Vite
-- **Desktop shell** — Tauri v2 (Rust)
-- **Markdown** — marked + DOMPurify (XSS-safe rendering)
-- **Icons** — lucide-vue-next
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Vue 3 + TypeScript + Pinia + Vite |
+| Desktop | Tauri v2 (Rust) |
+| Rendering | marked + DOMPurify (XSS-safe) |
+| Icons | lucide-vue-next |
 
 ---
 
@@ -59,9 +77,9 @@ PromptForge automatically selects and applies the right techniques based on task
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) 18+
-- [Rust](https://www.rust-lang.org/tools/install) (for Tauri desktop build)
+- [Rust](https://www.rust-lang.org/tools/install) — only needed for desktop build
 
-### Run in dev mode
+### Dev mode
 
 ```bash
 cd app
@@ -78,23 +96,25 @@ source ~/.cargo/env                  # load Rust toolchain
 npx @tauri-apps/cli build            # package .app + .dmg
 ```
 
-Output:
-- `src-tauri/target/release/bundle/macos/PromptForge.app`
-- `src-tauri/target/release/bundle/dmg/PromptForge_*.dmg`
+**Output:**
+```
+src-tauri/target/release/bundle/macos/PromptForge.app   (~8 MB)
+src-tauri/target/release/bundle/dmg/PromptForge_*.dmg   (~3 MB)
+```
 
 ---
 
 ## Configuration
 
-Open **Settings** (gear icon) and enter:
+Click the ⚙️ gear icon to open Settings:
 
 | Field | Description |
 |-------|-------------|
-| API Key | Your OpenAI-compatible key (`sk-...`) |
-| Base URL | API endpoint (default: `https://api.openai.com/v1`) |
-| Model | e.g. `gpt-4o`, `gpt-4o-mini`, `claude-3-5-sonnet` |
+| API Key | Any OpenAI-compatible key (`sk-...`) |
+| Base URL | API endpoint — default `https://api.openai.com/v1` |
+| Model | `gpt-4o`, `gpt-4o-mini`, `claude-3-5-sonnet`, … |
 
-The API key is stored **in memory only** — never written to disk or localStorage.
+> The API key is held **in memory only** and is never written to localStorage or disk.
 
 ---
 
@@ -105,15 +125,9 @@ app/
 ├── src/
 │   ├── views/          # InputView · AskView · ResultView
 │   ├── components/     # TitleBar · SettingsDrawer · ErrorBanner · StatusBar
-│   ├── stores/         # Pinia store (promptforge.ts)
+│   ├── stores/         # Pinia store
 │   ├── composables/    # useApi · useTheme · useKeyboard
-│   ├── lib/            # metaPrompt.ts — prompt engine core
-│   └── styles/         # tokens.css · global.css
-└── src-tauri/          # Rust/Tauri backend
+│   ├── lib/            # metaPrompt.ts — engine core
+│   └── styles/         # design tokens + global CSS
+└── src-tauri/          # Rust / Tauri backend
 ```
-
----
-
-## License
-
-MIT
