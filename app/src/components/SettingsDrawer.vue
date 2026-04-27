@@ -5,13 +5,98 @@ import { usePromptStore, type ThemePref, type Language } from '../stores/promptf
 
 const store = usePromptStore();
 
+interface Provider {
+  label: string;
+  baseUrl: string;
+  models: { value: string; label: string }[];
+}
+
+const PROVIDERS: Record<string, Provider> = {
+  openai: {
+    label: 'OpenAI',
+    baseUrl: 'https://api.openai.com/v1',
+    models: [
+      { value: 'gpt-4o', label: 'GPT-4o' },
+      { value: 'gpt-4o-mini', label: 'GPT-4o mini' },
+      { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+      { value: 'o1-mini', label: 'o1 mini' },
+    ],
+  },
+  anthropic: {
+    label: 'Claude (Anthropic)',
+    baseUrl: 'https://api.anthropic.com/v1',
+    models: [
+      { value: 'claude-opus-4-7', label: 'Claude Opus 4.7' },
+      { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
+      { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5' },
+    ],
+  },
+  deepseek: {
+    label: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com/v1',
+    models: [
+      { value: 'deepseek-chat', label: 'DeepSeek Chat (V3)' },
+      { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (R1)' },
+    ],
+  },
+  zhipu: {
+    label: '智谱 GLM',
+    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    models: [
+      { value: 'glm-4-flash', label: 'GLM-4 Flash（免费）' },
+      { value: 'glm-4-air', label: 'GLM-4 Air' },
+      { value: 'glm-4-plus', label: 'GLM-4 Plus' },
+    ],
+  },
+  siliconflow: {
+    label: '硅基流动',
+    baseUrl: 'https://api.siliconflow.cn/v1',
+    models: [
+      { value: 'deepseek-ai/DeepSeek-V3', label: 'DeepSeek V3' },
+      { value: 'Qwen/Qwen2.5-72B-Instruct', label: 'Qwen2.5 72B' },
+      { value: 'Pro/deepseek-ai/DeepSeek-R1', label: 'DeepSeek R1' },
+    ],
+  },
+  ollama: {
+    label: 'Ollama（本地）',
+    baseUrl: 'http://localhost:11434/v1',
+    models: [
+      { value: 'llama3.2', label: 'Llama 3.2' },
+      { value: 'qwen2.5', label: 'Qwen 2.5' },
+      { value: 'deepseek-r1', label: 'DeepSeek R1' },
+    ],
+  },
+  custom: {
+    label: '自定义',
+    baseUrl: '',
+    models: [],
+  },
+};
+
+function detectProvider(baseUrl: string): string {
+  for (const [key, p] of Object.entries(PROVIDERS)) {
+    if (key !== 'custom' && baseUrl.startsWith(p.baseUrl)) return key;
+  }
+  return 'custom';
+}
+
 const form = reactive({
   apiBaseUrl: store.apiBaseUrl,
   apiKey: store.apiKey,
   model: store.model,
   language: store.language,
   theme: store.theme,
+  provider: detectProvider(store.apiBaseUrl),
 });
+
+const currentModels = computed(() => PROVIDERS[form.provider]?.models ?? []);
+
+function pickProvider(key: string) {
+  form.provider = key;
+  const p = PROVIDERS[key];
+  if (p.baseUrl) form.apiBaseUrl = p.baseUrl;
+  if (p.models.length > 0) form.model = p.models[0].value;
+}
 
 watch(
   () => store.settingsOpen,
@@ -22,6 +107,7 @@ watch(
       form.model = store.model;
       form.language = store.language;
       form.theme = store.theme;
+      form.provider = detectProvider(store.apiBaseUrl);
     }
   },
 );
@@ -71,6 +157,18 @@ function clearHistory() {
 
     <div class="drawer-body">
       <div class="setting-section">
+        <div class="setting-label">服务商</div>
+        <div class="provider-grid">
+          <button
+            v-for="(p, key) in PROVIDERS"
+            :key="key"
+            :class="['provider-btn', { active: form.provider === key }]"
+            @click="pickProvider(key)"
+          >{{ p.label }}</button>
+        </div>
+      </div>
+
+      <div class="setting-section">
         <div class="setting-label">API 配置</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div>
@@ -87,12 +185,21 @@ function clearHistory() {
       <div class="setting-section">
         <div class="setting-label">模型</div>
         <select v-model="form.model">
-          <option value="gpt-4o">GPT-4o</option>
-          <option value="gpt-4o-mini">GPT-4o mini</option>
-          <option value="gpt-4-turbo">GPT-4 Turbo</option>
-          <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
-          <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+          <template v-if="currentModels.length > 0">
+            <option v-for="m in currentModels" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </template>
+          <template v-else>
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4o-mini">GPT-4o mini</option>
+          </template>
         </select>
+        <input
+          v-if="form.provider === 'custom' || !currentModels.find(m => m.value === form.model)"
+          type="text"
+          v-model="form.model"
+          placeholder="输入模型名称，如 gpt-4o"
+          style="margin-top:6px"
+        />
       </div>
 
       <div class="setting-section">
@@ -257,6 +364,36 @@ label {
   color: var(--text-primary);
 }
 .theme-choice.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.provider-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.provider-btn {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 7px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 150ms, color 150ms, background 150ms;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.provider-btn:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+.provider-btn.active {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-soft);
