@@ -15,6 +15,10 @@ Turn vague ideas into high-quality AI prompts, in seconds.
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![GitHub stars](https://img.shields.io/github/stars/gaowei90098-creator/PromptForge?style=flat-square)](https://github.com/gaowei90098-creator/PromptForge/stargazers)
 
+<br/>
+
+[🚀 Live Demo](https://prompt-forge-omega-ruddy.vercel.app/) | [📥 下载桌面版](https://github.com/gaowei90098-creator/PromptForge/releases)
+
 </div>
 
 ---
